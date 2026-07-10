@@ -1,0 +1,20 @@
+on: [push]
+
+jobs:
+  build_job:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    name: A job to run the build
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build step
+        uses: ./
+      - uses: actions/upload-artifact@v7
+        with:
+          path: tolk2spd.zip
+          archive: false
+      - uses: softprops/action-gh-release@v3
+        if: github.ref_type == 'tag'
+        with:
+          files: tolk2spd.zip
