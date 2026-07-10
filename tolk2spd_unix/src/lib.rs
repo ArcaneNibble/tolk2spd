@@ -79,6 +79,7 @@ impl SPDConnection {
         let mut ret = Self { stream };
 
         // Send the client name
+        let exename = exename.replace(" ", "");
         let username = whoami::get_username();
         let result = ret
             .send_cmd(&format!(
@@ -139,7 +140,6 @@ impl SPDConnection {
             }
             fixed.push_str(x);
         }
-        dbg!(&fixed);
 
         let resp = self.send_cmd("speak")?;
         if !resp.is_ok() {
