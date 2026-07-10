@@ -47,6 +47,7 @@ RUN cp target/x86_64-pc-windows-gnullvm/release/tolk.dll /build/package/tolk-win
 
 # Build an archive
 WORKDIR /build/package
+RUN cp /build/tolk2spd/README.md .
 RUN zip -r /build/tolk2spd.zip .
 
 FROM scratch
