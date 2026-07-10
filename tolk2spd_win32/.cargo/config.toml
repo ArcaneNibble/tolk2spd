@@ -1,0 +1,9 @@
+[build]
+target = "x86_64-pc-windows-gnullvm"
+
+[target.x86_64-pc-windows-gnullvm]
+rustflags = [
+    "-Clinker=rust-lld",
+    "-L../../mingw-w64-minimal/x86_64-w64-mingw32/lib",
+    "-Clink-arg=dllcrt2.o",
+]
