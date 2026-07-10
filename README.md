@@ -68,7 +68,7 @@ This will produce a `tolk2spd.zip` in the current directory (as well as a `busyb
 
 #### Manually building Windows component
 
-The Windows component is in `tolk2spd_win32` and generally should be build using the `build-debug.sh` script when testing. This is because the DLL files need post-build patching.
+The Windows component is in `tolk2spd_win32` and generally should be built using the `build-debug.sh` script when testing. This is because the DLL files need post-build patching.
 
 This only builds an x86_64 DLL. A 32-bit DLL can be build by passing `--target` to `cargo build`, but there's no script to automate the patching.
 
