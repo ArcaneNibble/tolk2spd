@@ -74,3 +74,12 @@ static __wine_unix_call_funcs: [WineUnixlibFnPtr; 5] = [
     WineUnixlibFnPtr(bridge_speak),
     WineUnixlibFnPtr(bridge_stop_speaking),
 ];
+
+#[unsafe(no_mangle)]
+static __wine_unix_call_wow64_funcs: [WineUnixlibFnPtr; 5] = [
+    WineUnixlibFnPtr(crate::get_version),
+    WineUnixlibFnPtr(bridge_connect),
+    WineUnixlibFnPtr(bridge_disconnect),
+    WineUnixlibFnPtr(bridge_speak),
+    WineUnixlibFnPtr(bridge_stop_speaking),
+];
