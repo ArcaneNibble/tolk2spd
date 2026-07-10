@@ -1,4 +1,6 @@
+use core::fmt;
 use std::ffi::c_void;
+use std::marker::PhantomData;
 use std::ptr;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -78,5 +80,44 @@ pub fn get_version() -> u32 {
             tolk2spd_abi::Syscalls::GetVersion as u32,
             ptr::null(),
         )
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct ConnectionHandle(pub u64, PhantomData<*mut ()>);
+impl fmt::Debug for ConnectionHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:x}", self.0)
+    }
+}
+
+pub fn connect() -> Option<ConnectionHandle> {
+    unsafe {
+        let mut args = tolk2spd_abi::ArgsConnect { out_connection: 0 };
+
+        let ret = __wine_unix_call_dispatcher(
+            __wine_unixlib_handle.load(Ordering::Relaxed),
+            tolk2spd_abi::Syscalls::Connect as u32,
+            &mut args as *mut tolk2spd_abi::ArgsConnect as *const c_void,
+        );
+        if ret != 0 {
+            return None;
+        }
+
+        Some(ConnectionHandle(args.out_connection, PhantomData))
+    }
+}
+
+pub unsafe fn disconnect(conn: ConnectionHandle) {
+    unsafe {
+        let mut args = tolk2spd_abi::ArgsDisconnect {
+            in_connection: conn.0,
+        };
+
+        __wine_unix_call_dispatcher(
+            __wine_unixlib_handle.load(Ordering::Relaxed),
+            tolk2spd_abi::Syscalls::Disconnect as u32,
+            &mut args as *mut tolk2spd_abi::ArgsDisconnect as *const c_void,
+        );
     }
 }

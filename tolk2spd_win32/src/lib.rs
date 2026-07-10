@@ -33,6 +33,16 @@ extern "C" fn Tolk_Load() {
         return;
     }
 
+    // Try to establish a connection
+    if let Some(conn) = ffi::connect() {
+        dbg!(conn);
+        unsafe {
+            ffi::disconnect(conn);
+        }
+    } else {
+        return;
+    }
+
     // This is set only if a connection is properly established
     IS_WORKING.store(true, Ordering::Relaxed);
     // Force the emulated screenreader name to be initialized now
