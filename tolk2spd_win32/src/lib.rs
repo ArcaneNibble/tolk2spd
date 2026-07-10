@@ -152,6 +152,11 @@ extern "C" fn Tolk_Braille(str_: *const u16) -> bool {
 #[allow(non_snake_case)]
 extern "C" fn Tolk_IsSpeaking() -> bool {
     eprintln!("Tolk_IsSpeaking");
+
+    // Technically, it is possible to implement this
+    // However, in order to massively simplify the code
+    // (no async notification handling), we don't.
+    // This matches what many of the drivers in fact do
     false
 }
 
