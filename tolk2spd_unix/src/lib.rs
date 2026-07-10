@@ -89,8 +89,6 @@ impl SPDConnection {
             eprintln!("warn: setting ssip client_name failed! {}", result.message);
         }
 
-        ret.speak(".\r\nthis is\r\n.\r\n a test\r\n.\r\n");
-
         Some(ret)
     }
 

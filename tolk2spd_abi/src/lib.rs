@@ -38,10 +38,18 @@ pub struct ArgsDisconnect {
     pub in_connection: u64,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[repr(C)]
+pub struct ArgsSpeak {
+    pub in_connection: u64,
+    pub in_msg: FFIStringBorrow,
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 #[repr(u32)]
 pub enum Syscalls {
     GetVersion,
     Connect,
     Disconnect,
+    Speak,
 }

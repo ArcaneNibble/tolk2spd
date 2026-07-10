@@ -37,9 +37,26 @@ extern "C" fn bridge_disconnect(arg: *const c_void) -> u32 {
     }
 }
 
+extern "C" fn bridge_speak(arg: *const c_void) -> u32 {
+    unsafe {
+        let arg = arg as *mut tolk2spd_abi::ArgsSpeak;
+
+        let msg = &((*arg).in_msg);
+        let msg: &str = msg.into();
+
+        let conn = (*arg).in_connection as usize;
+        let conn: *mut SPDConnection = ptr::with_exposed_provenance_mut(conn);
+        let conn = &mut *conn;
+
+        let res = conn.speak(msg);
+        if res.is_ok() { 0 } else { 0xffffffff }
+    }
+}
+
 #[unsafe(no_mangle)]
-static __wine_unix_call_funcs: [WineUnixlibFnPtr; 3] = [
+static __wine_unix_call_funcs: [WineUnixlibFnPtr; 4] = [
     WineUnixlibFnPtr(crate::get_version),
     WineUnixlibFnPtr(bridge_connect),
     WineUnixlibFnPtr(bridge_disconnect),
+    WineUnixlibFnPtr(bridge_speak),
 ];

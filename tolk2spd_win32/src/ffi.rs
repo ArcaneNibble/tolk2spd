@@ -143,3 +143,23 @@ pub unsafe fn disconnect(conn: ConnectionHandle) {
         );
     }
 }
+
+pub unsafe fn speak(conn: ConnectionHandle, msg: &str) -> bool {
+    unsafe {
+        let mut args = tolk2spd_abi::ArgsSpeak {
+            in_connection: conn.0,
+            in_msg: msg.into(),
+        };
+
+        let ret = __wine_unix_call_dispatcher(
+            __wine_unixlib_handle.load(Ordering::Relaxed),
+            tolk2spd_abi::Syscalls::Speak as u32,
+            &mut args as *mut tolk2spd_abi::ArgsSpeak as *const c_void,
+        );
+        if ret != 0 {
+            return false;
+        }
+
+        true
+    }
+}

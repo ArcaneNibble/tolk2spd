@@ -57,9 +57,9 @@ extern "C" fn Tolk_IsLoaded() -> bool {
 extern "C" fn Tolk_Unload() {
     eprintln!("Tolk_Unload");
     // Close the connection
-    let conn = CONNECTION.swap(9, Ordering::Relaxed);
-    let conn = ffi::ConnectionHandle::from(conn);
     unsafe {
+        let conn = CONNECTION.swap(0, Ordering::Relaxed);
+        let conn = ffi::ConnectionHandle::from(conn);
         ffi::disconnect(conn);
     }
 
@@ -135,9 +135,12 @@ extern "C" fn Tolk_Speak(str_: *const u16, interrupt: bool) -> bool {
     };
     eprintln!("Tolk_Speak {} {}", str_, interrupt);
 
-    // TODO: Actually do something
-    // for now we pretend that it worked
-    true
+    unsafe {
+        // TODO: Handle interrupting
+        let conn = CONNECTION.load(Ordering::Relaxed);
+        let conn = ffi::ConnectionHandle::from(conn);
+        ffi::speak(conn, &str_)
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -156,7 +159,7 @@ extern "C" fn Tolk_IsSpeaking() -> bool {
     // Technically, it is possible to implement this
     // However, in order to massively simplify the code
     // (no async notification handling), we don't.
-    // This matches what many of the drivers in fact do
+    // This matches what many of the drivers in fact do.
     false
 }
 

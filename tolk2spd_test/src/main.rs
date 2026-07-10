@@ -24,6 +24,8 @@ fn main() {
     let Tolk_Unload: extern "C" fn() = gpa(our_dll, c"Tolk_Unload");
     let Tolk_DetectScreenReader: extern "C" fn() -> *const u16 =
         gpa(our_dll, c"Tolk_DetectScreenReader");
+    let Tolk_Speak: extern "C" fn(str_: *const u16, interrupt: bool) -> bool =
+        gpa(our_dll, c"Tolk_Speak");
 
     Tolk_Load();
     let sr = PCWSTR::from_raw(Tolk_DetectScreenReader());
@@ -37,5 +39,6 @@ fn main() {
     unsafe {
         eprintln!("Screen reader: {}", sr.display());
     }
+    dbg!(Tolk_Speak(windows_strings::w!("this is a test").0, false));
     Tolk_Unload();
 }
