@@ -10,6 +10,10 @@ extern "C" fn bridge_connect(arg: *const c_void) -> u32 {
     unsafe {
         let arg = arg as *mut tolk2spd_abi::ArgsConnect;
 
+        let exename = &((*arg).in_exename);
+        let exename: &str = exename.into();
+        dbg!(exename);
+
         let conn = Box::new(SPDConnection::new());
         let conn = Box::into_raw(conn);
         (*arg).out_connection = conn.expose_provenance() as u64;

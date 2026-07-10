@@ -97,8 +97,25 @@ impl From<u64> for ConnectionHandle {
 }
 
 pub fn connect() -> Option<ConnectionHandle> {
+    // Get the EXE name, specifically from the Win32 side
+    // (it's not useful to have the *nix side return that the executable is the preloader)
+    let exe_pathbuf;
+    let exe = if let Ok(exe) = std::env::current_exe() {
+        exe_pathbuf = exe;
+        if let Some(exe) = exe_pathbuf.file_stem() {
+            &exe.to_string_lossy()
+        } else {
+            "tolk2spd"
+        }
+    } else {
+        "tolk2spd"
+    };
+
     unsafe {
-        let mut args = tolk2spd_abi::ArgsConnect { out_connection: 0 };
+        let mut args = tolk2spd_abi::ArgsConnect {
+            in_exename: exe.into(),
+            out_connection: 0,
+        };
 
         let ret = __wine_unix_call_dispatcher(
             __wine_unixlib_handle.load(Ordering::Relaxed),
