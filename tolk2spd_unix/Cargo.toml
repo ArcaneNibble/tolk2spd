@@ -8,3 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 tolk2spd_abi = { path = "../tolk2spd_abi" }
+libc = "0.2"

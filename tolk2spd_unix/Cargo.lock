@@ -3,6 +3,12 @@
 version = 4
 
 [[package]]
+name = "libc"
+version = "0.2.186"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
+
+[[package]]
 name = "tolk2spd_abi"
 version = "0.0.0"
 
@@ -10,5 +16,6 @@ version = "0.0.0"
 name = "tolk2spd_unix"
 version = "0.0.0"
 dependencies = [
+ "libc",
  "tolk2spd_abi",
 ]
