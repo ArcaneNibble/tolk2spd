@@ -163,3 +163,22 @@ pub unsafe fn speak(conn: ConnectionHandle, msg: &str) -> bool {
         true
     }
 }
+
+pub unsafe fn stop_speaking(conn: ConnectionHandle) -> bool {
+    unsafe {
+        let mut args = tolk2spd_abi::ArgsStopSpeaking {
+            in_connection: conn.0,
+        };
+
+        let ret = __wine_unix_call_dispatcher(
+            __wine_unixlib_handle.load(Ordering::Relaxed),
+            tolk2spd_abi::Syscalls::StopSpeaking as u32,
+            &mut args as *mut tolk2spd_abi::ArgsStopSpeaking as *const c_void,
+        );
+        if ret != 0 {
+            return false;
+        }
+
+        true
+    }
+}

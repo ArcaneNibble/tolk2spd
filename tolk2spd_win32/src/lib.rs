@@ -136,9 +136,15 @@ extern "C" fn Tolk_Speak(str_: *const u16, interrupt: bool) -> bool {
     eprintln!("Tolk_Speak {} {}", str_, interrupt);
 
     unsafe {
-        // TODO: Handle interrupting
         let conn = CONNECTION.load(Ordering::Relaxed);
         let conn = ffi::ConnectionHandle::from(conn);
+
+        // If message should interrupt, stop speaking
+        // Ignore errors that might occur
+        if interrupt {
+            ffi::stop_speaking(conn);
+        }
+
         ffi::speak(conn, &str_)
     }
 }
@@ -171,7 +177,9 @@ extern "C" fn Tolk_Silence() -> bool {
         return false;
     }
 
-    // TODO: Actually do something
-    // for now we pretend that it worked
-    true
+    unsafe {
+        let conn = CONNECTION.load(Ordering::Relaxed);
+        let conn = ffi::ConnectionHandle::from(conn);
+        ffi::stop_speaking(conn)
+    }
 }

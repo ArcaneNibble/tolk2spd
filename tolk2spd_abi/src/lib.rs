@@ -45,6 +45,12 @@ pub struct ArgsSpeak {
     pub in_msg: FFIStringBorrow,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[repr(C)]
+pub struct ArgsStopSpeaking {
+    pub in_connection: u64,
+}
+
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 #[repr(u32)]
 pub enum Syscalls {
@@ -52,4 +58,5 @@ pub enum Syscalls {
     Connect,
     Disconnect,
     Speak,
+    StopSpeaking,
 }

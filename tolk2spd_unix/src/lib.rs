@@ -155,6 +155,14 @@ impl SPDConnection {
         }
         Ok(resp)
     }
+
+    pub fn stop_speaking(&mut self) -> Result<SSIPRespose, SSIPError> {
+        let resp = self.send_cmd("cancel self")?;
+        if !resp.is_ok() {
+            return Err(SSIPError::SSIPError(resp));
+        }
+        Ok(resp)
+    }
 }
 
 impl Drop for SPDConnection {
