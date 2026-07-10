@@ -13,3 +13,4 @@ windows-sys = { version = "0.61", features = [
     "Win32_System_SystemServices",
     "Win32_System_Threading",
 ] }
+windows-strings = "0.5"

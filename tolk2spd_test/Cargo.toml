@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 windows-sys = { version = "0.61", features = ["Win32_System_LibraryLoader"] }
+windows-strings = "0.5"
