@@ -1,0 +1,11 @@
+[build]
+target = "x86_64-unknown-linux-gnu"
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-Clinker=rust-lld",
+    "-L../../valve-sniper/usr/lib/gcc/x86_64-linux-gnu/10",
+    "-L../../valve-sniper/usr/lib/x86_64-linux-gnu",
+    "-L../../valve-sniper/lib/x86_64-linux-gnu",
+    "-Clink-arg=--sysroot=../../valve-sniper",
+]

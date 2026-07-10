@@ -1,5 +1,5 @@
 [package]
-name = "tolk2spd_win32"
+name = "tolk"
 version = "0.0.0"
 edition = "2024"
 
