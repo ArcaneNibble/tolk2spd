@@ -12,13 +12,16 @@ extern "C" fn bridge_connect(arg: *const c_void) -> u32 {
 
         let exename = &((*arg).in_exename);
         let exename: &str = exename.into();
-        dbg!(exename);
 
-        let conn = Box::new(SPDConnection::new());
-        let conn = Box::into_raw(conn);
-        (*arg).out_connection = conn.expose_provenance() as u64;
+        if let Some(conn) = SPDConnection::new(exename) {
+            let conn = Box::new(conn);
+            let conn = Box::into_raw(conn);
+            (*arg).out_connection = conn.expose_provenance() as u64;
 
-        0
+            0
+        } else {
+            0xffffffff
+        }
     }
 }
 
