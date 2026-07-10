@@ -42,7 +42,6 @@ extern "C" fn Tolk_Load() {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_IsLoaded() -> bool {
-    eprintln!("Tolk_IsLoaded");
     IS_WORKING.load(Ordering::Relaxed)
 }
 
@@ -79,7 +78,6 @@ extern "C" fn Tolk_DetectScreenReader() -> *const u16 {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_HasSpeech() -> bool {
-    eprintln!("Tolk_HasSpeech");
     if !Tolk_IsLoaded() {
         return false;
     }
@@ -90,7 +88,6 @@ extern "C" fn Tolk_HasSpeech() -> bool {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_HasBraille() -> bool {
-    eprintln!("Tolk_HasBraille");
     // We do not support braille
     false
 }
@@ -98,7 +95,6 @@ extern "C" fn Tolk_HasBraille() -> bool {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_Output(str_: *const u16, interrupt: bool) -> bool {
-    eprintln!("Tolk_Output {:?} {}", str_, interrupt);
     // Since we only support speech, redirect
     Tolk_Speak(str_, interrupt)
 }
@@ -106,7 +102,6 @@ extern "C" fn Tolk_Output(str_: *const u16, interrupt: bool) -> bool {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_Speak(str_: *const u16, interrupt: bool) -> bool {
-    eprintln!("Tolk_Speak {:?} {}", str_, interrupt);
     if !Tolk_IsLoaded() {
         return false;
     }
