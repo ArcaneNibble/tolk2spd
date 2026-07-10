@@ -6,9 +6,14 @@ version = 4
 name = "tolk"
 version = "0.0.0"
 dependencies = [
+ "tolk2spd_abi",
  "windows-strings",
  "windows-sys",
 ]
+
+[[package]]
+name = "tolk2spd_abi"
+version = "0.0.0"
 
 [[package]]
 name = "windows-link"
