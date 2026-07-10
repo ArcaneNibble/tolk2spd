@@ -1,5 +1,6 @@
 use std::ffi::c_void;
-use std::sync::atomic::AtomicU64;
+use std::ptr;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use windows_sys::Wdk::Storage::FileSystem::NtQueryVirtualMemory;
 use windows_sys::Win32::Foundation::HINSTANCE;
@@ -26,13 +27,10 @@ extern "system" fn DllMain(hinstDLL: HINSTANCE, fdwReason: u32, _: *mut ()) -> B
         return 1;
     }
 
-    dbg!("tolk2spd DllMain!");
-
     unsafe {
         DisableThreadLibraryCalls(hinstDLL);
 
         let img_base = &raw const __ImageBase;
-        dbg!(img_base);
 
         let mut wine_unixlib_handle: u64 = 0;
         let ret = NtQueryVirtualMemory(
@@ -43,15 +41,19 @@ extern "system" fn DllMain(hinstDLL: HINSTANCE, fdwReason: u32, _: *mut ()) -> B
             std::mem::size_of_val(&wine_unixlib_handle),
             std::ptr::null_mut(),
         );
-        dbg!(ret, wine_unixlib_handle);
+        if ret != 0 {
+            return 0;
+        }
 
-        //     if ret != 0 {
-        //         return 0;
-        //     }
-        //     println!("__wine_unixlib_handle = 0x{wine_unixlib_handle:016x}");
-        //     __wine_unixlib_handle.store(wine_unixlib_handle, Ordering::Relaxed);
+        eprintln!("__wine_unixlib_handle = 0x{wine_unixlib_handle:016x}");
+        __wine_unixlib_handle.store(wine_unixlib_handle, Ordering::Relaxed);
 
-        //     dbg!(__wine_unix_call_dispatcher);
+        let returned = __wine_unix_call_dispatcher(
+            __wine_unixlib_handle.load(Ordering::Relaxed),
+            0,
+            ptr::null(),
+        );
+        dbg!(returned);
     }
 
     return 1;
