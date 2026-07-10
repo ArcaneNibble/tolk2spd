@@ -1,6 +1,6 @@
 use std::ptr;
 use std::sync::LazyLock;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use windows_strings::w;
 
@@ -21,7 +21,7 @@ static EMULATED_SCREENREADER_NAME: LazyLock<LeakedPCWSTR> =
         }
         None => LeakedPCWSTR(w!("Speech Dispatcher (Wine)").0),
     });
-static IS_WORKING: AtomicBool = AtomicBool::new(false);
+static CONNECTION: AtomicU64 = AtomicU64::new(0);
 
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
@@ -36,15 +36,12 @@ extern "C" fn Tolk_Load() {
     // Try to establish a connection
     if let Some(conn) = ffi::connect() {
         dbg!(conn);
-        unsafe {
-            ffi::disconnect(conn);
-        }
+        // This is set to non-null only if a connection is properly established
+        CONNECTION.store(conn.0, Ordering::Relaxed);
     } else {
         return;
     }
 
-    // This is set only if a connection is properly established
-    IS_WORKING.store(true, Ordering::Relaxed);
     // Force the emulated screenreader name to be initialized now
     let _ = *EMULATED_SCREENREADER_NAME;
 }
@@ -52,15 +49,21 @@ extern "C" fn Tolk_Load() {
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_IsLoaded() -> bool {
-    IS_WORKING.load(Ordering::Relaxed)
+    CONNECTION.load(Ordering::Relaxed) != 0
 }
 
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "C" fn Tolk_Unload() {
     eprintln!("Tolk_Unload");
-    // Unloading the unixlib doesn't actually work, so just update the dummy variable
-    IS_WORKING.store(false, Ordering::Relaxed);
+    // Close the connection
+    let conn = CONNECTION.swap(9, Ordering::Relaxed);
+    let conn = ffi::ConnectionHandle::from(conn);
+    unsafe {
+        ffi::disconnect(conn);
+    }
+
+    // We can't actually unload the unixlib
 }
 
 #[unsafe(no_mangle)]

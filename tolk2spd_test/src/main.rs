@@ -21,13 +21,21 @@ fn main() {
     assert!(!our_dll.is_null(), "failed to load unixlib");
 
     let Tolk_Load: extern "C" fn() = gpa(our_dll, c"Tolk_Load");
+    let Tolk_Unload: extern "C" fn() = gpa(our_dll, c"Tolk_Unload");
     let Tolk_DetectScreenReader: extern "C" fn() -> *const u16 =
         gpa(our_dll, c"Tolk_DetectScreenReader");
-    // dbg!(Tolk_Load, Tolk_DetectScreenReader);
+
+    Tolk_Load();
+    let sr = PCWSTR::from_raw(Tolk_DetectScreenReader());
+    unsafe {
+        eprintln!("Screen reader (first test): {}", sr.display());
+    }
+    Tolk_Unload();
 
     Tolk_Load();
     let sr = PCWSTR::from_raw(Tolk_DetectScreenReader());
     unsafe {
         eprintln!("Screen reader: {}", sr.display());
     }
+    Tolk_Unload();
 }

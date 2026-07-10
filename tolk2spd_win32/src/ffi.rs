@@ -90,6 +90,11 @@ impl fmt::Debug for ConnectionHandle {
         write!(f, "0x{:x}", self.0)
     }
 }
+impl From<u64> for ConnectionHandle {
+    fn from(value: u64) -> Self {
+        Self(value, PhantomData)
+    }
+}
 
 pub fn connect() -> Option<ConnectionHandle> {
     unsafe {
