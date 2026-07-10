@@ -1,3 +1,7 @@
+//! Try to determine the current username
+//!
+//! This is something that SSIP would like to have as part of its CLIENT_NAME
+
 use std::alloc::Layout;
 use std::ffi::CStr;
 use std::mem::MaybeUninit;
@@ -5,6 +9,10 @@ use std::ptr;
 
 use libc::*;
 
+/// Return the current username
+///
+/// This looks at the current EUID and attempts to convert it to a username.
+/// If the conversion fails, it returns the numeric ID converted to string.
 pub fn get_username() -> String {
     unsafe {
         let uid = geteuid();

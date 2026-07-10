@@ -1,3 +1,5 @@
+//! FFI glue for Wine unixlib
+
 use core::fmt;
 use std::ffi::c_void;
 use std::marker::PhantomData;
@@ -12,16 +14,27 @@ use windows_sys::Win32::System::Threading::GetCurrentProcess;
 use windows_sys::core::BOOL;
 
 unsafe extern "C" {
+    /// Use the linker to get our [HMODULE](windows_sys::Win32::Foundation::HMODULE)
+    ///
+    /// This is used in lieu of saving the `HMODULE` in `DllMain`
     static __ImageBase: std::ffi::c_void;
 }
+/// Handle to the *nix `.so` side of our library
 #[allow(non_upper_case_globals)]
 static __wine_unixlib_handle: AtomicU64 = AtomicU64::new(0);
 #[link(name = "ntdll", kind = "raw-dylib")]
 unsafe extern "system" {
+    /// Wine special NTDLL export for calling across the boundary
+    ///
+    /// Note that this isn't a function, it's a function _pointer_.
+    /// We have declared it to Rust s.t. Rust understands this.
     pub static __wine_unix_call_dispatcher:
         unsafe extern "system" fn(unixlib_handle: u64, code: u32, ptr: *const c_void) -> u32;
 }
 
+/// The DLL entry point
+///
+/// For efficiency, ask to not get thread messages we don't care about
 #[unsafe(no_mangle)]
 #[allow(non_snake_case)]
 extern "system" fn DllMain(hinstDLL: HINSTANCE, fdwReason: u32, _: *mut ()) -> BOOL {
@@ -36,6 +49,7 @@ extern "system" fn DllMain(hinstDLL: HINSTANCE, fdwReason: u32, _: *mut ()) -> B
     return 1;
 }
 
+/// Attempt to load the *nix `.so` library
 pub(crate) fn load_unixlib() -> bool {
     if __wine_unixlib_handle.load(Ordering::Relaxed) == 0 {
         unsafe {
@@ -73,6 +87,7 @@ pub(crate) fn load_unixlib() -> bool {
     true
 }
 
+/// Calls [tolk2spd_abi::Syscalls::GetVersion]
 pub fn get_version() -> u32 {
     unsafe {
         __wine_unix_call_dispatcher(
@@ -83,6 +98,10 @@ pub fn get_version() -> u32 {
     }
 }
 
+/// Wrap a connection object/handle
+///
+/// This cleans up the debug printing and makes sure it has the correct variance in Rust.
+/// This isn't super _useful_, but it may help in case this code gets reused further.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct ConnectionHandle(pub u64, PhantomData<*mut ()>);
 impl fmt::Debug for ConnectionHandle {
@@ -96,6 +115,7 @@ impl From<u64> for ConnectionHandle {
     }
 }
 
+/// Calls [tolk2spd_abi::Syscalls::Connect]
 pub fn connect() -> Option<ConnectionHandle> {
     // Get the EXE name, specifically from the Win32 side
     // (it's not useful to have the *nix side return that the executable is the preloader)
@@ -130,6 +150,9 @@ pub fn connect() -> Option<ConnectionHandle> {
     }
 }
 
+/// Calls [tolk2spd_abi::Syscalls::Disconnect]
+///
+/// Unsafe because the `ConnectionHandle` does expose the raw integer value.
 pub unsafe fn disconnect(conn: ConnectionHandle) {
     unsafe {
         let mut args = tolk2spd_abi::ArgsDisconnect {
@@ -144,6 +167,9 @@ pub unsafe fn disconnect(conn: ConnectionHandle) {
     }
 }
 
+/// Calls [tolk2spd_abi::Syscalls::Speak]
+///
+/// Unsafe because the `ConnectionHandle` does expose the raw integer value.
 pub unsafe fn speak(conn: ConnectionHandle, msg: &str) -> bool {
     unsafe {
         let mut args = tolk2spd_abi::ArgsSpeak {
@@ -164,6 +190,9 @@ pub unsafe fn speak(conn: ConnectionHandle, msg: &str) -> bool {
     }
 }
 
+/// Calls [tolk2spd_abi::Syscalls::StopSpeaking]
+///
+/// Unsafe because the `ConnectionHandle` does expose the raw integer value.
 pub unsafe fn stop_speaking(conn: ConnectionHandle) -> bool {
     unsafe {
         let mut args = tolk2spd_abi::ArgsStopSpeaking {

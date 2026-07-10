@@ -1,11 +1,15 @@
+//! FFI glue for Wine unixlib
+
 use std::{ffi::c_void, ptr};
 
 use crate::SPDConnection;
 
+/// A function pointer with the correct ABI
 #[repr(transparent)]
 struct WineUnixlibFnPtr(pub extern "C" fn(*const c_void) -> u32);
 unsafe impl Sync for WineUnixlibFnPtr {}
 
+/// Implement [tolk2spd_abi::Syscalls::Connect]
 extern "C" fn bridge_connect(arg: *const c_void) -> u32 {
     unsafe {
         let arg = arg as *mut tolk2spd_abi::ArgsConnect;
@@ -25,6 +29,7 @@ extern "C" fn bridge_connect(arg: *const c_void) -> u32 {
     }
 }
 
+/// Implement [tolk2spd_abi::Syscalls::Disconnect]
 extern "C" fn bridge_disconnect(arg: *const c_void) -> u32 {
     unsafe {
         let arg = arg as *mut tolk2spd_abi::ArgsDisconnect;
@@ -37,6 +42,7 @@ extern "C" fn bridge_disconnect(arg: *const c_void) -> u32 {
     }
 }
 
+/// Implement [tolk2spd_abi::Syscalls::Speak]
 extern "C" fn bridge_speak(arg: *const c_void) -> u32 {
     unsafe {
         let arg = arg as *mut tolk2spd_abi::ArgsSpeak;
@@ -53,6 +59,7 @@ extern "C" fn bridge_speak(arg: *const c_void) -> u32 {
     }
 }
 
+/// Implement [tolk2spd_abi::Syscalls::StopSpeaking]
 extern "C" fn bridge_stop_speaking(arg: *const c_void) -> u32 {
     unsafe {
         let arg = arg as *mut tolk2spd_abi::ArgsStopSpeaking;
@@ -66,6 +73,7 @@ extern "C" fn bridge_stop_speaking(arg: *const c_void) -> u32 {
     }
 }
 
+/// Function call table for Win64
 #[unsafe(no_mangle)]
 static __wine_unix_call_funcs: [WineUnixlibFnPtr; 5] = [
     WineUnixlibFnPtr(crate::get_version),
@@ -75,6 +83,7 @@ static __wine_unix_call_funcs: [WineUnixlibFnPtr; 5] = [
     WineUnixlibFnPtr(bridge_stop_speaking),
 ];
 
+/// Function call table for WOW64 Win32 --> Win64
 #[unsafe(no_mangle)]
 static __wine_unix_call_wow64_funcs: [WineUnixlibFnPtr; 5] = [
     WineUnixlibFnPtr(crate::get_version),

@@ -1,3 +1,5 @@
+//! *nix side of the Tolk2SPD bridge
+
 use std::error::Error;
 use std::ffi::c_void;
 use std::fmt;
@@ -8,29 +10,39 @@ use std::path::PathBuf;
 mod ffi;
 mod whoami;
 
+/// Return the ABI version of our side
 extern "C" fn get_version(_arg: *const c_void) -> u32 {
     tolk2spd_abi::ABI_VERSION
 }
 
+/// Represents an active connection to Speech Dispatcher
 #[derive(Debug)]
 pub struct SPDConnection {
     stream: UnixStream,
 }
 
+/// A response from the Speech Dispatcher server
 #[derive(Debug)]
 pub struct SSIPRespose {
+    /// The 3-digit numeric status code
     pub code: u32,
+    /// The entire message (all lines) returned by the server
     pub message: String,
 }
 impl SSIPRespose {
+    /// Check for a 2xx status code
     pub fn is_ok(&self) -> bool {
         self.code >= 200 && self.code <= 299
     }
 }
 
+/// A possible error when communicating with the server
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum SSIPError {
+    /// A low-level I/O error occurred
     IoError(io::Error),
+    /// The server returned a non-success status code
     SSIPError(SSIPRespose),
 }
 impl Error for SSIPError {
@@ -56,6 +68,7 @@ impl fmt::Display for SSIPError {
 }
 
 impl SPDConnection {
+    /// Attempt to open a new connection to Speech Dispatcher
     pub fn new(exename: &str) -> Option<Self> {
         // Try to find the socket path
         let mut sock_path = if let Some(x) = std::env::var_os("XDG_RUNTIME_DIR") {
@@ -93,6 +106,9 @@ impl SPDConnection {
         Some(ret)
     }
 
+    /// Send a command to the server
+    ///
+    /// Automatically adds a newline after
     fn send_cmd(&mut self, cmd: &str) -> io::Result<SSIPRespose> {
         write!(self.stream, "{}\r\n", cmd)?;
 
@@ -124,6 +140,7 @@ impl SPDConnection {
         })
     }
 
+    /// Ask the server to speak a message
     pub fn speak(&mut self, to_speak: &str) -> Result<SSIPRespose, SSIPError> {
         // Replace potential badness
         let mut fixed = String::with_capacity(to_speak.len());
@@ -156,17 +173,14 @@ impl SPDConnection {
         Ok(resp)
     }
 
+    /// Ask the server to stop speaking
+    ///
+    /// This sends the `cancel` command and stops all queued messages
     pub fn stop_speaking(&mut self) -> Result<SSIPRespose, SSIPError> {
         let resp = self.send_cmd("cancel self")?;
         if !resp.is_ok() {
             return Err(SSIPError::SSIPError(resp));
         }
         Ok(resp)
-    }
-}
-
-impl Drop for SPDConnection {
-    fn drop(&mut self) {
-        dbg!("drop conn!");
     }
 }
